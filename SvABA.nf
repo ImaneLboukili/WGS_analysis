@@ -49,6 +49,7 @@ if (params.help) {
     log.info "--normal_folder        FOLDER              Folder containing associated normal bam files"
     log.info "--ref_file             PATH                Path to  reference fasta file, the reference file should be indexed "
     log.info "--dbsnp_file           FILE                DbSNP file https://data.broadinstitute.org/snowman/dbsnp_indel.vcf"
+    log.info "--output 				 PATH				 Path to output folder"
     log.info ""
     log.info "Optional arguments:"
     log.info "--cpu                  INTEGER              Number of cpu to use (default=4)"
@@ -68,7 +69,7 @@ files = Channel.fromPath( params.tumor_folder+'/*.bam' )
 
 process svaba {
 		cpus params.cpu
-        memory params.mem_QC+'GB'    
+        memory params.mem+'GB'    
         tag { file_tag }
         
         input:
@@ -77,7 +78,7 @@ process svaba {
         file dbsnp
 	
         output:
-	publishDir "${./}", mode: 'copy', pattern: '{*.bps.txt.gz,*.contigs.bam,*.discordants.txt.gz,*.log,*.alignments.txt.gz,*.vcf}' 
+	publishDir "${params.output_folder}", mode: 'copy', pattern: '{*.bps.txt.gz,*.contigs.bam,*.discordants.txt.gz,*.log,*.alignments.txt.gz,*.vcf}' 
 
 	shell:
         file_tag = files[0].baseName

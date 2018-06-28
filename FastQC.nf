@@ -67,7 +67,7 @@ fastas = Channel.fromPath( params.input_folder+'/*.fastq.gz' )
 
 process fastqc {
 		cpus params.cpu
-        memory params.mem_QC+'GB'    
+        memory params.mem+'GB'    
         tag { fasta_tag }
         
         input:
