@@ -17,13 +17,13 @@
 
 
 params.help          		 = null
+params.config         		= null
 params.cpu            		= "12"
-params.mem           		 = "2"
-
+params.cpu            		= "8"
 
 log.info ""
 log.info "----------------------------------------------------------------"
-log.info " fastqc-0.11.3/  : Quality control with FastQC  and MultiQC     "
+log.info "           Quality control with Qualimap  and MultiQC           "
 log.info "----------------------------------------------------------------"
 log.info "Copyright (C) IARC/WHO"
 log.info "This program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE"
@@ -37,10 +37,11 @@ if (params.help) {
     log.info ""
     log.info "-------------------QC-------------------------------"
     log.info "" 
-    log.info "nextflow run FastQC.nf   --input_folder path/to/fasta/ --fastqc path/to/fastqc/ --multiqc path/to/multiqc/  --output_folder /path/to/output"
+    log.info "nextflow run iarcbioinfo/Qualimap.nf   --qualimap /path/to/qualimap  --multiqc /path/to/multiqc --input_folder /path/to/bam  --output_folder /path/to/output"
     log.info ""
     log.info "Mandatory arguments:"
-    log.info "--fastqc              PATH                FastQC installation dir"
+    log.info "--qualimap              PATH               Qualimap installation dir"
+    log.info "--samptools              PATH              Samtools installation dir"
     log.info "--multiqc              PATH               MultiQC installation dir"
     log.info "--input_folder         FOLDER               Folder containing fasta files"
     log.info "--output_folder        PATH                 Output directory for html and zip files (default=fastqc_ouptut)" 
@@ -48,6 +49,7 @@ if (params.help) {
     log.info "Optional arguments:"
     log.info "--cpu                  INTEGER              Number of cpu to use (default=2)"
     log.info "--config               FILE                 Use custom configuration file"
+    log.info "--threads                  INTEGER              Number of threads to use (default=8)"
     log.info ""
     log.info "Flags:"
     log.info "--help                                      Display this message"
@@ -55,42 +57,34 @@ if (params.help) {
     exit 1
 } 
 
-fastas = Channel.fromPath( params.input_folder+'/*.fastq.gz' )
-              .ifEmpty { error "Cannot find any fasta file in: ${params.input_folder}" }
-              .map {  path -> [ path.name.replace(".fastq.gz",""), path ] }
-              
-              
+bams = Channel.fromPath( params.input_folder+'/*.bam' )
+              .ifEmpty { error "Cannot find any bam file in: ${params.input_folder}" }
+              .map {  path -> [ path.name.replace(".bam",""), path ] }
 
-process fastqc {
+process qualimap {
 		cpus params.cpu
 
         input:
-        file i from fastas
+        file i from bams
 	
         output:
-        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*_fastqc.zip,*._fastqc.html}' 
-
+        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.pdf}' 
 	shell:
         '''
-	${params.fastqc} -t ${task.cpus} ${i}.fastq.gz -o  ${params.output_folder}
+	${params.qualimap} bamqc -nt ${params.threads} -bam ${i} -outdir ${params.output_folder} -outformat pdf 
+
 }
 
 process multiqc{
             cpus '1'
-            
-            
             input:
-	    	 file(zipfile)  from !{params.output_folder}
+	    	 file(pdffile)  from !{params.output_folder}
 	    	 
 	    	 output :
-	    	 publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}' 
+	    	 publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
 
             shell:
             '''
-	  ${params.multiqc} -d ${params.output_folder}/*_fastqc.zip 
+	  ${params.multiqc} -d ${params.output_folder}/*
             '''
 }
-
-
-
-

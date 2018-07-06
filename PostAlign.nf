@@ -18,13 +18,12 @@
 
 params.help          		 = null
 params.config         		= null
-params.cpu            		= "4"
+params.cpu            		= "1"
 params.mem           		 = "2"
-
 
 log.info ""
 log.info "----------------------------------------------------------------"
-log.info "        svaba/  : Structural variants calling with SvABA        "
+log.info " samtools-1.6 bwakit-0.7.15 sambamba-0.6.5 : Post alignment      "
 log.info "----------------------------------------------------------------"
 log.info "Copyright (C) IARC/WHO"
 log.info "This program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE"
@@ -36,19 +35,18 @@ if (params.help) {
     log.info "                     USAGE                              "
     log.info "--------------------------------------------------------"
     log.info ""
-    log.info "-------------------SvABA-------------------------------"
+    log.info "-------------------QC-------------------------------"
     log.info "" 
-    log.info "nextflow run SvABA.nf  --input_folder  path/to/input/ --svaba path/to/svaba/ --ref_file path/to/ref/ --dbsnp_file path/to/dbsnp_indel.vcf --output_folder /path/to/output"
+    log.info "nextflow run PostAlign.nf --samtools /path/to/samtools --sambamba /path/to/sambamba --bwait /path/to/bwakit --input_folder path/to/input   --output_folder /path/to/output"
     log.info ""
     log.info "Mandatory arguments:"
-    log.info "--svaba                PATH                SvABA installation dir"
-    log.info "--input_folder         PATH              Folder containing  bam files"
-    log.info "--ref_file             PATH                Path to  reference fasta file, the reference file should be indexed "
-    log.info "--dbsnp_file           FILE                DbSNP file https://data.broadinstitute.org/snowman/dbsnp_indel.vcf"
-    log.info "--output_folder				 PATH				 Path to output folder"
+    log.info "--samtools              PATH               samtools installation dir"
+    log.info "--sambamba              PATH               sambamba installation dir"
+    log.info "--bwakit                PATH               bwakit installation dir"
+    log.info "--input_folder         FOLDER               Folder containing bam files"
+    log.info "--output_folder         path               Path to output"
     log.info ""
     log.info "Optional arguments:"
-    log.info "--cpu                  INTEGER              Number of cpu to use (default=4)"
     log.info "--config               FILE                 Use custom configuration file"
     log.info ""
     log.info "Flags:"
@@ -57,27 +55,20 @@ if (params.help) {
     exit 1
 } 
 
-bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{normal,tumor}.pa.bam").ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
+all_bams = Channel.fromPath( params.input_folder+'/*.bam' ).ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
 
-ch = Channel.from( 1, 3, 5, 7 )
-ch.subscribe { println "value: $it" }
+process post_alignment {
+  input:
+  file i from all_bams
 
+  output:
+  publishDir'${params.output_folder}', mode: 'copy', pattern: '{*.HEAD,*.pa.bam}'
 
-
-process SVaBa {
-		cpus params.cpu    
-
-input :
-
-   set val(sampleID),file(tumor_normal) from bams
-   
-   output:
-	publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.bps.txt.gz,*.contigs.bam,*.discordants.txt.gz,*.log,*.alignments.txt.gz,*.vcf}' 
-shell :
-
-
-     """ 
-     	${params.svaba} run -t $tumor_normal[0] -n $tumor_normal[1] -p ${task.cpus} -D ${params.dbsnp_file} -a somatic_run -G ${params.ref_file} 
-
-    """
+  shell:
+  '''
+${params.samtools} view -h ${i} | k8 bwa-postalt.js hs38DH.fa.alt | \
+${params.sambamba} view -S -f bam -l 0 /dev/stdin | \
+${params.sambamba} sort -t 8 -m 6G --tmpdir=${params.output_folder} -o ${i}_pa.bam /dev/stdin
+  //head -n1 !{i} > !{i}.HEAD
+  '''
 }
