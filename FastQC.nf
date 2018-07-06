@@ -17,12 +17,9 @@
 
 
 params.help          		 = null
-params.fastqc        		= null
-params.multiqc        		= null
-params.config         		= null
 params.cpu            		= "12"
 params.mem           		 = "2"
-params.output_folder  		= "fastqc_output"
+
 
 log.info ""
 log.info "----------------------------------------------------------------"
@@ -86,7 +83,7 @@ process multiqc{
 	    	 file(zipfile)  from !{params.output_folder}
 	    	 
 	    	 output :
-	    	 publishDir '${params.output_folder}'
+	    	 publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}' 
 
             shell:
             '''
