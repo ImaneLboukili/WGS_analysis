@@ -17,13 +17,10 @@
 
 
 params.help          		 = null
-params.input_folder  		 = "./"
-params.svaba        		= null
 params.config         		= null
 params.cpu            		= "4"
 params.mem           		 = "2"
-params.output_folder  		= "svaba_output"
-params.mode           		= "svaba"
+
 
 log.info ""
 log.info "----------------------------------------------------------------"
@@ -45,11 +42,10 @@ if (params.help) {
     log.info ""
     log.info "Mandatory arguments:"
     log.info "--svaba                PATH                SvABA installation dir"
-    log.info "--tumor_folder         FOLDER              Folder containing tumor bam files"
-    log.info "--normal_folder        FOLDER              Folder containing associated normal bam files"
+    log.info "--input_folder         PATH              Folder containing  bam files"
     log.info "--ref_file             PATH                Path to  reference fasta file, the reference file should be indexed "
     log.info "--dbsnp_file           FILE                DbSNP file https://data.broadinstitute.org/snowman/dbsnp_indel.vcf"
-    log.info "--output 				 PATH				 Path to output folder"
+    log.info "--output_folder				 PATH				 Path to output folder"
     log.info ""
     log.info "Optional arguments:"
     log.info "--cpu                  INTEGER              Number of cpu to use (default=4)"
@@ -61,29 +57,27 @@ if (params.help) {
     exit 1
 } 
 
-files = Channel.fromPath( params.tumor_folder+'/*.bam' )
-              .ifEmpty { error "Cannot find any bam file in: ${params.tumor_folder}" }
-              .map {  path -> [ path.name.replace(".bam",""), path ] }
-              
-              
+bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{normal,tumor}.pa.bam").ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
 
-process svaba {
-		cpus params.cpu
-        memory params.mem+'GB'    
-        tag { file_tag }
-        
-        input:
-        set val(file_tag), file("${file_tag}*val*.bam"), file("${file_tag}*val*.normal.bam")
-        file ref 
-        file dbsnp
-	
-        output:
-	publishDir "${params.output_folder}", mode: 'copy', pattern: '{*.bps.txt.gz,*.contigs.bam,*.discordants.txt.gz,*.log,*.alignments.txt.gz,*.vcf}' 
+ch = Channel.from( 1, 3, 5, 7 )
+ch.subscribe { println "value: $it" }
 
-	shell:
-        file_tag = files[0].baseName
-        '''
-	svaba run -t !{file_tag}.bam -n !{file_tag}.normal.bam -p !{task.cpus} -D $DBSNP -a somatic_run -G !{ref_file} 
-        '''
+
+
+process SVaBa {
+		cpus params.cpu    
+
+input :
+
+   set val(sampleID),file(tumor_normal) from bams
+   
+   output:
+	publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.bps.txt.gz,*.contigs.bam,*.discordants.txt.gz,*.log,*.alignments.txt.gz,*.vcf}' 
+shell :
+
+
+     """ 
+     	${params.svaba} run -t $tumor_normal[0] -n $tumor_normal[1] -p ${task.cpus} -D ${params.dbsnp_file} -a somatic_run -G ${params.ref_file} 
+
+    """
 }
-

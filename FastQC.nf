@@ -16,8 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-params.help          		 = nul
-params.input_folder  		 = "./"
+params.help          		 = null
 params.fastqc        		= null
 params.multiqc        		= null
 params.config         		= null
@@ -47,6 +46,7 @@ if (params.help) {
     log.info "--fastqc              PATH                FastQC installation dir"
     log.info "--multiqc              PATH               MultiQC installation dir"
     log.info "--input_folder         FOLDER               Folder containing fasta files"
+    log.info "--output_folder        PATH                 Output directory for html and zip files (default=fastqc_ouptut)" 
     log.info ""
     log.info "Optional arguments:"
     log.info "--cpu                  INTEGER              Number of cpu to use (default=2)"
@@ -67,36 +67,34 @@ fastas = Channel.fromPath( params.input_folder+'/*.fastq.gz' )
 
 process fastqc {
 		cpus params.cpu
-        memory params.mem+'GB'    
-        tag { fasta_tag }
-        
+
         input:
-        set val(fasta_tag), file("${fasta_tag}*val*.fastq.gz") 
+        file i from fastas
 	
         output:
-	publishDir "${params.output_folder}", mode: 'copy', pattern: '{*fastqc.zip,*fastqc.html}' into resultsQC
-
+        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*_fastqc.zip,*._fastqc.html}' 
+		file ("${i}_fastqc.html") into !{params.output_folder}
 	shell:
-        fasta_tag = fastas[0].baseName
         '''
-	fastqc -t !{task.cpus} !{fasta_tag}.fastq.gz -o  !{params.output_folder}
-        '''
+	${params.fastqc} -t ${task.cpus} ${i}.fastq.gz -o  ${params.output_folder}
 }
 
 process multiqc{
             cpus '1'
-            memory params.mem_QC+'GB'
-            tag { html_tag }
-	    
+            
+            
             input:
-	    	set val(fasta_tag), file(filehtml)  from resultsQC
-	    
-            output:
-           publishDir "${params.output_folder}/multiQC/", mode: 'copy', pattern: '{*fastqc.zip,*fastqc.html}'    
+	    	 file(zipfile)  from !{params.output_folder}
+	    	 
+	    	 output :
+	    	 publishDir '${params.output_folder}'
+
             shell:
             '''
-	  multiqc -d !{params.input_folder}/*_fastqc.zip 
+	  ${params.multiqc} -d ${params.output_folder}/*_fastqc.zip 
             '''
 }
+
+
 
 
