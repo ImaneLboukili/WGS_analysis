@@ -50,7 +50,6 @@ if (params.help) {
     log.info ""
     log.info "Optional arguments:"
     log.info "--cpu                  INTEGER              Number of cpu to use (default=2)"
-    log.info "--output_folder        PATH                 Output directory for html and zip files (default=fastqc_ouptut)"
     log.info "--config               FILE                 Use custom configuration file"
     log.info ""
     log.info "Flags:"
