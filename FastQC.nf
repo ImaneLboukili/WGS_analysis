@@ -73,7 +73,7 @@ process fastqc {
 	
         output:
         publishDir '${params.output_folder}', mode: 'copy', pattern: '{*_fastqc.zip,*._fastqc.html}' 
-		file ("${i}_fastqc.html") into !{params.output_folder}
+
 	shell:
         '''
 	${params.fastqc} -t ${task.cpus} ${i}.fastq.gz -o  ${params.output_folder}
