@@ -66,9 +66,9 @@ process post_alignment {
 
   shell:
   '''
-${params.samtools} view -h ${i} | k8 bwa-postalt.js hs38DH.fa.alt | \
-${params.sambamba} view -S -f bam -l 0 /dev/stdin | \
-${params.sambamba} sort -t 8 -m 6G --tmpdir=${params.output_folder} -o ${i}_pa.bam /dev/stdin
+!{params.samtools} view -h !{i} | k8 bwa-postalt.js hs38DH.fa.alt | \
+!{params.sambamba} view -S -f bam -l 0 /dev/stdin | \
+!{params.sambamba} sort -t 8 -m 6G --tmpdir=!{params.output_folder} -o !{i}_pa.bam /dev/stdin
   //head -n1 !{i} > !{i}.HEAD
   '''
 }
