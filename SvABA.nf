@@ -57,10 +57,8 @@ if (params.help) {
     exit 1
 } 
 
-bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{normal,tumor}.pa.bam").ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
+bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{normal,tumor}.pa.bam", flat:true).ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
 
-ch = Channel.from( 1, 3, 5, 7 )
-ch.subscribe { println "value: $it" }
 
 
 
@@ -69,7 +67,7 @@ process SVaBa {
 
 input :
 
-   set val(sampleID),file(tumor_normal) from bams
+   set val(sampleID),file(tumor),file(normal) from bams
    
    output:
 	publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.bps.txt.gz,*.contigs.bam,*.discordants.txt.gz,*.log,*.alignments.txt.gz,*.vcf}' 
@@ -77,7 +75,8 @@ shell :
 
 
      """ 
-     	${params.svaba} run -t $tumor_normal[0] -n $tumor_normal[1] -p ${task.cpus} -D ${params.dbsnp_file} -a somatic_run -G ${params.ref_file} 
+    ${params.svaba} run -t $tumor -n $normal -p ${task.cpus} -D ${params.dbsnp_file} -a somatic_run -G ${params.ref_file} 
+
 
     """
 }

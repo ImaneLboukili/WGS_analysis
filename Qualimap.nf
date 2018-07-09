@@ -18,7 +18,6 @@
 
 params.help          		 = null
 params.config         		= null
-params.cpu            		= "12"
 params.cpu            		= "8"
 
 log.info ""
@@ -49,7 +48,6 @@ if (params.help) {
     log.info "Optional arguments:"
     log.info "--cpu                  INTEGER              Number of cpu to use (default=2)"
     log.info "--config               FILE                 Use custom configuration file"
-    log.info "--threads                  INTEGER              Number of threads to use (default=8)"
     log.info ""
     log.info "Flags:"
     log.info "--help                                      Display this message"
@@ -59,32 +57,30 @@ if (params.help) {
 
 bams = Channel.fromPath( params.input_folder+'/*.bam' )
               .ifEmpty { error "Cannot find any bam file in: ${params.input_folder}" }
-              .map {  path -> [ path.name.replace(".bam",""), path ] }
 
-process qualimap {
-		cpus params.cpu
-
+process qualimap{
+	publishDir '${params.output_folder}', mode: 'copy'
         input:
-        file i from bams
-	
+		file baminput from bams
         output:
-        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.pdf}' 
+        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
 	shell:
         '''
-	${params.qualimap} bamqc -nt ${params.threads} -bam ${i} -outdir ${params.output_folder} -outformat pdf 
-
+ !{params.samtools} sort $baminput -o ${bam.baseName}.sorted.bam
+ !{params.qualimap} bamqc -nt !{params.cpu} -bam $baminput -outdir !{params.output_folder} -outformat html
+ !{params.samtools} flagstat ${i} > ${params.output_folder}
+'''
 }
 
 process multiqc{
             cpus '1'
+             
             input:
-	    	 file(pdffile)  from !{params.output_folder}
-	    	 
-	    	 output :
-	    	 publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
-
+	    	 file(filehtml)  from params.output_folder
+	output :
+	publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
             shell:
             '''
-	  ${params.multiqc} -d ${params.output_folder}/*
+	  !{params.multiqc} -d !{params.outputt_folder}/*.html
             '''
 }
