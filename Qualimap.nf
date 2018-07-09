@@ -58,29 +58,37 @@ if (params.help) {
 bams = Channel.fromPath( params.input_folder+'/*.bam' )
               .ifEmpty { error "Cannot find any bam file in: ${params.input_folder}" }
 
-process qualimap{
-	publishDir '${params.output_folder}', mode: 'copy'
-        input:
-		file baminput from bams
-        output:
-        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
-	shell:
-        '''
- !{params.samtools} sort $baminput -o ${bam.baseName}.sorted.bam
- !{params.qualimap} bamqc -nt !{params.cpu} -bam $baminput -outdir !{params.output_folder} -outformat html
- !{params.samtools} flagstat ${i} > ${params.output_folder}
-'''
+
+
+process qualimap {
+    tag "${bam.baseName}"
+    publishDir "${params.outdir}/qualimap", mode: 'copy'
+
+    input:
+    file bam from bams
+
+    output:
+    file "${bam.baseName}_qualimap" into qualimap_results
+
+    script:
+    gcref = params.genome == 'GRCh37' ? '-gd HUMAN' : ''
+    gcref = params.genome == 'GRCm38' ? '-gd MOUSE' : ''
+    """
+    ${params.samtools} sort $bam -o ${bam.baseName}.sorted.bam
+   ${params.qualimap} bamqc -nt ${params.cpu} -bam $bam -outdir ${bam.baseName}.qualimap -outformat html
+    ${params.samtools} flagstat $bam > qualimap_results
+    """
 }
 
 process multiqc{
             cpus '1'
              
             input:
-	    	 file(filehtml)  from params.output_folder
+	    	 file(filehtml)  from qualimap_results
 	output :
 	publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
             shell:
             '''
-	  !{params.multiqc} -d !{params.outputt_folder}/*.html
+	  ${params.multiqc} -d qualimap_results
             '''
 }
