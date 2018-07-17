@@ -17,12 +17,13 @@
 
 
 params.help          		 = null
-params.config         		= null
-params.cpu            		= "8"
+params.cpu            		= "12"
+params.mem           		 = "2"
+
 
 log.info ""
 log.info "----------------------------------------------------------------"
-log.info "           Quality control with Qualimap  and MultiQC           "
+log.info " fastqc-0.11.3/  : Quality control with FastQC  and MultiQC     "
 log.info "----------------------------------------------------------------"
 log.info "Copyright (C) IARC/WHO"
 log.info "This program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE"
@@ -36,13 +37,12 @@ if (params.help) {
     log.info ""
     log.info "-------------------QC-------------------------------"
     log.info "" 
-    log.info "nextflow run iarcbioinfo/Qualimap.nf   --qualimap /path/to/qualimap  --multiqc /path/to/multiqc --samtools /path/to/samtools --input_folder /path/to/bam  --output_folder /path/to/output"
+    log.info "nextflow run FastQC.nf   --input_folder path/to/fasta/ --fastqc path/to/fastqc/ --multiqc path/to/multiqc/  --output_folder /path/to/output"
     log.info ""
     log.info "Mandatory arguments:"
-    log.info "--qualimap              PATH               Qualimap installation dir"
-    log.info "--samptools              PATH              Samtools installation dir"
+    log.info "--fastqc              PATH                FastQC installation dir"
     log.info "--multiqc              PATH               MultiQC installation dir"
-    log.info "--input_folder         FOLDER               Folder containing bam files"
+    log.info "--input_folder         FOLDER               Folder containing fasta files"
     log.info "--output_folder        PATH                 Output directory for html and zip files (default=fastqc_ouptut)" 
     log.info ""
     log.info "Optional arguments:"
@@ -55,40 +55,42 @@ if (params.help) {
     exit 1
 } 
 
-bams = Channel.fromPath( params.input_folder+'/*.bam' )
-              .ifEmpty { error "Cannot find any bam file in: ${params.input_folder}" }
+fastas = Channel.fromPath( params.input_folder+'/*.fastq.gz' )
+              .ifEmpty { error "Cannot find any fasta file in: ${params.input_folder}" }
+              .map {  path -> [ path.name.replace(".fastq.gz",""), path ] }
+              
+              
 
+process fastqc {
+		cpus params.cpu
 
+        input:
+        file i from fastas
+	
+        output:
+        publishDir '${params.output_folder}', mode: 'copy', pattern: '{*_fastqc.zip,*._fastqc.html}' 
 
-process qualimap {
-    tag "${bam.baseName}"
-    publishDir "${params.outdir}/qualimap", mode: 'copy'
-
-    input:
-    file bam from bams
-
-    output:
-    file "${bam.baseName}_qualimap" into qualimap_results
-
-    script:
-    gcref = params.genome == 'GRCh37' ? '-gd HUMAN' : ''
-    gcref = params.genome == 'GRCm38' ? '-gd MOUSE' : ''
-    """
-    ${params.samtools} sort $bam -o ${bam.baseName}.sorted.bam
-   ${params.qualimap} bamqc -nt ${params.cpu} -bam $bam -outdir ${bam.baseName}.qualimap -outformat html
-    ${params.samtools} flagstat $bam > qualimap_results
-    """
+	shell:
+        '''
+	${params.fastqc} -t ${task.cpus} ${i}.fastq.gz -o  ${params.output_folder}
 }
 
 process multiqc{
             cpus '1'
-             
+            
+            
             input:
-	    	 file(filehtml)  from qualimap_results
-	output :
-	publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}'
+	    	 file(zipfile)  from !{params.output_folder}
+	    	 
+	    	 output :
+	    	 publishDir '${params.output_folder}', mode: 'copy', pattern: '{*.html}' 
+
             shell:
             '''
-	  ${params.multiqc} -d qualimap_results
+	  ${params.multiqc} -d ${params.output_folder}/*_fastqc.zip 
             '''
 }
+
+
+
+
