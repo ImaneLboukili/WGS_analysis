@@ -1,5 +1,7 @@
  # Post alignement # 
 
+![Image PostAlign](https://github.com/ImaneLboukili/WGS_analysis/blob/master/PostAlign/PostAlign.png)
+
 ## Description ##
 
 Perform a post alignement on aligned reads files.
