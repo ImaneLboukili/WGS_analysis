@@ -1,5 +1,7 @@
 # Structural variant calling #
 
+![Image SvABA](https://github.com/ImaneLboukili/WGS_analysis/blob/master/SvABA/SvABA.png)
+
 ## Description ##
 
 Perform structural variant calling with SvABA.
