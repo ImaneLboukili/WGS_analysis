@@ -1,6 +1,7 @@
-name: FastQC
+name: Qualimap
 channels:
   - bioconda
 dependencies:
-  - fastqc=0.11.3
+  - qualimap= 2.2
+  - samtools=1.6
   - multiqc=1.5

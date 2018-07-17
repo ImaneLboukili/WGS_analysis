@@ -1,0 +1,7 @@
+name: PostAlign
+channels:
+  - bioconda
+dependencies:
+  - samtools=1.6
+  - sambamba=0.6.5
+  - bwakit=0.7.15
