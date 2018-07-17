@@ -20,4 +20,4 @@ MAINTAINER Imane Lboukili <lboukilii@students.iarc.fr>
 
 COPY environment.yml /
 RUN conda env create -f /environment.yml && conda clean -a
-ENV PATH /opt/conda/envs/PstAlign/bin:$PATH
+ENV PATH /opt/conda/envs/PostAlign/bin:$PATH
