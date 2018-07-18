@@ -14,7 +14,7 @@ Perform structural variant calling with SvABA.
 
 **Name**        | **Description**
 --------------- | ---------------
---input_folder  |  Folder containing BAM files
+--input_folder  |  Folder containing normal (.normal.bam) and tumor (.tumor.bam) BAM files
 --ref_file      |  Path to reference fasta file. It should be indexed
 --dbsnp_file    |  DbSNP file, available [here](https://data.broadinstitute.org/snowman/dbsnp_indel.vcf)
 --output_folder |  Path to output folder
@@ -44,11 +44,11 @@ Flags are special parameters without value.
 
 ## Output ##
 
-**Name**                    | **Description**
---------------------------  | --------------------------
-txts (*.bps.txt.gz)         |  Raw, unfiltered variants
-BAMs (*.contigs.bam)        |  Unsorted assembly contigs as aligned to the reference with BWA-MEM
-Logs (*.log)                |  Run-time information
-txts (*.discordants.txt.gz) |  Discordant reads identified with 2+ reads
-VCFs (*.vcf )               |  VCF of rearrangements and indels
+**Name**                   | **Description**
+-------------------------- | --------------------------
+txts (.bps.txt.gz)         |  Raw, unfiltered variants
+BAMs (.contigs.bam)        |  Unsorted assembly contigs as aligned to the reference with BWA-MEM
+Logs (.log)                |  Run-time information
+txts (.discordants.txt.gz) |  Discordant reads identified with 2+ reads
+VCFs (.vcf )               |  VCF of rearrangements and indels
 
