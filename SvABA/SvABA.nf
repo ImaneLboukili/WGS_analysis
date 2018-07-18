@@ -57,7 +57,7 @@ if (params.help) {
     exit 1
 } 
 
-bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{normal,tumor}.bam", flat:true).ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
+bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{tumor,normal}.bam", flat:true).ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
 
 
 
