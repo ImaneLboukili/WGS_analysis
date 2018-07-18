@@ -16,7 +16,7 @@ Perform structural variant calling with SvABA.
 --------------- | ---------------
 --input_folder  |  Folder containing BAM files
 --ref_file      |  Path to reference fasta file. It should be indexed
---dbsnp_file    |  DbSNP file, available here
+--dbsnp_file    |  DbSNP file, available [here](https://data.broadinstitute.org/snowman/dbsnp_indel.vcf)
 --output_folder |  Path to output folder
 
 ## Parameters ## 
