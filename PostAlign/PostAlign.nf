@@ -18,8 +18,8 @@
 
 params.help          		 = null
 params.config         		= null
-params.cpu            		= "1"
-params.mem           		 = "2"
+params.cpu            		= "28"
+params.mem           		 = "32"
 
 log.info ""
 log.info "----------------------------------------------------------------"
@@ -48,6 +48,7 @@ if (params.help) {
     log.info ""
     log.info "Optional arguments:"
     log.info "--config               FILE                 Use custom configuration file"
+    log.info "--mem                  INTEGER              Size of memory used. Default 32Gb"
     log.info ""
     log.info "Flags:"
     log.info "--help                                      Display this message"
