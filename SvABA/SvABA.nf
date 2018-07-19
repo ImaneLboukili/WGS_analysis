@@ -18,8 +18,8 @@
 
 params.help          		 = null
 params.config         		= null
-params.cpu            		= "8"
-params.mem           		 = "32"
+params.cpu            		= 8
+params.mem           		 = 32
 
 
 log.info ""
@@ -64,7 +64,8 @@ bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{tumor,normal}.bam", f
 
 
 process SVaBa {
-		cpus params.cpu    
+		 cpus params.cpu
+    
 
 input :
 

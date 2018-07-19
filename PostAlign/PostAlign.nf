@@ -18,8 +18,8 @@
 
 params.help          		 = null
 params.config         		= null
-params.cpu            		= "28"
-params.mem           		 = "32"
+params.cpu            		= 28
+params.mem           		 = 32
 
 log.info ""
 log.info "----------------------------------------------------------------"
@@ -59,6 +59,7 @@ if (params.help) {
 all_bams = Channel.fromPath( params.input_folder+'/*.bam' ).ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
 
 process post_alignment {
+ cpus params.cpu
   input:
   file i from all_bams
 
@@ -67,7 +68,8 @@ process post_alignment {
 
   shell:
   '''
-!{params.samtools} view -h !{i} | !{params.bwakit}/bin/k8 !{params.bwakit}/bin/bwa-postalt.js !{params.bwakit}/resource-GRCh38/hs38DH.fa.alt | \
+!{params.samtools} view -h !{i} | \
+!{params.bwakit}/bin/k8 !{params.bwakit}/bin/bwa-postalt.js !{params.bwakit}/resource-GRCh38/hs38DH.fa.alt | \
 !{params.sambamba} view -S -f bam -l 0 /dev/stdin | \
 !{params.sambamba} sort -t 8 -m 6G --tmpdir=!{params.output_folder} -o !{i.baseName}_pa.bam /dev/stdin
 
