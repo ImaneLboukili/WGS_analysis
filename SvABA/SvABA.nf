@@ -77,6 +77,7 @@ shell :
 
 
      """ 
+     cd ${params.input_folder}
     ${params.svaba} run -t $tumor -n $normal -p ${task.cpus} -D ${params.dbsnp_file} -a somatic_run -G ${params.ref_file} 
 
     """
