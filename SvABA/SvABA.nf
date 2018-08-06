@@ -43,6 +43,7 @@ if (params.help) {
     log.info "Mandatory arguments:"
     log.info "--svaba                PATH                SvABA installation dir"
     log.info "--input_folder         PATH              Folder containing  bam files"
+    log.info "--correspondance       FILE              File containing correspondence between path to normal and path to tumor bams for each patient  "
     log.info "--ref_file             PATH                Path to  reference fasta file, the reference file should be indexed "
     log.info "--dbsnp_file           FILE                DbSNP file https://data.broadinstitute.org/snowman/dbsnp_indel.vcf"
     log.info "--output_folder				 PATH				 Path to output folder"
@@ -58,8 +59,9 @@ if (params.help) {
     exit 1
 } 
 
-bams=Channel.fromFilePairs("${params.input_folder}/M662_*.{tumor,normal}.bam", flat:true).ifEmpty{error "Cannot find any bam file in: ${params.input_folder}"}
 
+bams= Channel.fromPath(correpondance).splitCsv(header: true, sep: '\t', strip: true)
+		.map{row -> [ row.ID, file(params.bam_folder + "/" +row.tumor),file(params.bam_folder + "/" +row.normal )]}
 
 
 
