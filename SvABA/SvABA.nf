@@ -59,7 +59,7 @@ if (params.help) {
     exit 1
 } 
 
-
+correpondance = file(params.correspondance)
 bams= Channel.fromPath(correpondance).splitCsv(header: true, sep: '\t', strip: true)
 		.map{row -> [ row.ID, file(params.bam_folder + "/" +row.tumor),file(params.bam_folder + "/" +row.normal )]}
 
