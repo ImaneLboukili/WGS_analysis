@@ -82,5 +82,26 @@ shell :
      cd ${params.input_folder}
     ${params.svaba} run -t $tumor -n $normal -p ${task.cpus} -D ${params.dbsnp_file} -a somatic_run -G ${params.ref_file} -M 40000
 
+mv somatic_run.bps.txt.gz  ${params.output_folder}/${ID}.somatic.bps.txt.gz
+mv somatic_run.contigs.bam  ${params.output_folder}/${ID}.somatic.contigs.bam
+mv somatic_run.discordant.txt.gz ${params.output_folder}/${ID}.discordant.txt.gz
+mv somatic_run.log ${params.output_folder}/${ID}.log
+mv somatic_run.alignments.txt.gz ${params.output_folder}/${ID}.alignments.txt.gz
+
+mv somatic_run.svaba.somatic.sv.vcf        ${params.output_folder}/${ID}.somatic.sv.vcf         
+mv somatic_run.svaba.unfiltered.somatic.sv.vcf ${params.output_folder}/${ID}.unfiltered.somatic.sv.vcf
+         
+ 
+mv somatic_run.svaba.germline.indel.vcf  ${params.output_folder}/${ID}.germline.indel.vcf
+mv somatic_run.svaba.unfiltered.germline.indel.vcf ${params.output_folder}/${ID}.unfiltered.germline.indel.vcf
+     
+               
+mv somatic_run.svaba.germline.sv.vcf    ${params.output_folder}/${ID}.germline.sv.vcf
+mv somatic_run.svaba.unfiltered.germline.sv.vcf ${params.output_folder}/${ID}.unfiltered.germline.sv.vcf
+  
+    
+   
+mv somatic_run.svaba.somatic.indel.vcf   ${params.output_folder}/${ID}.somatic.indel.vcf
+mv somatic_run.svaba.unfiltered.somatic.indel.vcf ${params.output_folder}/${ID}.unfiltered.somatic.indel.vcf
     """
 }
