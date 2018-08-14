@@ -47,6 +47,7 @@ if (params.help) {
     log.info "--output_folder         path               Path to output"
     log.info ""
     log.info "Optional arguments:"
+    log.info "--cpu                  INTEGER              Number of cpu to use (default=28)"
     log.info "--config               FILE                 Use custom configuration file"
     log.info "--mem                  INTEGER              Size of memory used. Default 32Gb"
     log.info ""
